@@ -205,9 +205,19 @@ export class UsersRepository {
                         'userTraffic.onlineAt',
                     ].includes(filter.id)
                 ) {
+                    const dateOp =
+                        mode === 'lt'
+                            ? '<'
+                            : mode === 'lte'
+                              ? '<='
+                              : mode === 'gt'
+                                ? '>'
+                                : mode === 'gte'
+                                  ? '>='
+                                  : '=';
                     whereBuilder = whereBuilder.where(
                         filter.id as any,
-                        '=',
+                        dateOp,
                         new Date(filter.value as string),
                     );
                     continue;
@@ -355,9 +365,19 @@ export class UsersRepository {
                             'userTraffic.onlineAt',
                         ].includes(filter.id)
                     ) {
+                        const dateOp =
+                            mode === 'lt'
+                                ? '<'
+                                : mode === 'lte'
+                                  ? '<='
+                                  : mode === 'gt'
+                                    ? '>'
+                                    : mode === 'gte'
+                                      ? '>='
+                                      : '=';
                         countBuilder = countBuilder.where(
                             filter.id as keyof DB['users'],
-                            '=',
+                            dateOp,
                             new Date(filter.value as string),
                         );
                         continue;
