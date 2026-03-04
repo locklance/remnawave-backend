@@ -305,6 +305,24 @@ export class UsersRepository {
                     continue;
                 }
 
+                if (filter.id === 'tag') {
+                    switch (mode) {
+                        case 'startsWith':
+                            whereBuilder = whereBuilder.where('tag', 'like', `${filter.value}%`);
+                            break;
+                        case 'endsWith':
+                            whereBuilder = whereBuilder.where('tag', 'like', `%${filter.value}`);
+                            break;
+                        case 'equals':
+                            whereBuilder = whereBuilder.where('tag', '=', filter.value as string);
+                            break;
+                        default: // 'contains'
+                            whereBuilder = whereBuilder.where('tag', 'ilike', `%${filter.value}%`);
+                            break;
+                    }
+                    continue;
+                }
+
                 const field = filter.id as keyof DB['users'];
 
                 switch (mode) {
@@ -462,6 +480,24 @@ export class UsersRepository {
                             '=',
                             getKyselyUuid(filter.value as string),
                         );
+                        continue;
+                    }
+
+                    if (filter.id === 'tag') {
+                        switch (mode) {
+                            case 'startsWith':
+                                countBuilder = countBuilder.where('tag', 'like', `${filter.value}%`);
+                                break;
+                            case 'endsWith':
+                                countBuilder = countBuilder.where('tag', 'like', `%${filter.value}`);
+                                break;
+                            case 'equals':
+                                countBuilder = countBuilder.where('tag', '=', filter.value as string);
+                                break;
+                            default: // 'contains'
+                                countBuilder = countBuilder.where('tag', 'ilike', `%${filter.value}%`);
+                                break;
+                        }
                         continue;
                     }
 

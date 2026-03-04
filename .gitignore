@@ -67,3 +67,5 @@ openapi.json
 prisma/generated/types.ts
 
 f.json
+
+test_tag_filter.py
