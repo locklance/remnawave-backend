@@ -49,6 +49,8 @@ export class HostsEntity implements Hosts {
         squadUuid: string;
     }[];
 
+    xrayJsonTemplateUuids: string[];
+
     constructor(data: Partial<Hosts>) {
         Object.assign(this, data);
 

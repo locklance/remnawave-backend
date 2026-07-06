@@ -112,10 +112,7 @@ export type HysteriaProtocol = {
 };
 
 export type ProtocolVariant =
-    | VlessProtocol
-    | TrojanProtocol
-    | ShadowsocksProtocol
-    | HysteriaProtocol;
+    VlessProtocol | TrojanProtocol | ShadowsocksProtocol | HysteriaProtocol;
 
 // ─── Transport Variants ──────────────────────────────────
 
@@ -218,6 +215,7 @@ export type ResolvedProxyConfig = {
         mihomoX25519: boolean;
         serverDescription: string | null;
         xrayJsonTemplate: object | null;
+        xrayJsonTemplates: object[];
     };
 
     metadata: IProxyEntryMetadata;

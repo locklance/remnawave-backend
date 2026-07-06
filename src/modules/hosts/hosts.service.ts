@@ -22,8 +22,37 @@ export class HostsService {
         private readonly queryBus: QueryBus,
     ) {}
 
+    private async findInvalidXrayJsonTemplate(
+        uuids: string[],
+    ): Promise<(typeof ERRORS)[keyof typeof ERRORS] | null> {
+        for (const uuid of uuids) {
+            const xrayJsonTemplate = await this.queryBus.execute(
+                new GetSubscriptionTemplateByUuidQuery(uuid),
+            );
+
+            if (!xrayJsonTemplate.isOk) {
+                return ERRORS.SUBSCRIPTION_TEMPLATE_NOT_FOUND;
+            }
+
+            if (xrayJsonTemplate.response.templateType !== 'XRAY_JSON') {
+                return ERRORS.TEMPLATE_TYPE_NOT_ALLOWED;
+            }
+        }
+
+        return null;
+    }
+
     public async createHost(dto: CreateHostRequestDto): Promise<TResult<HostsEntity>> {
         try {
+            if (dto.xrayJsonTemplateUuids?.length) {
+                const invalidError = await this.findInvalidXrayJsonTemplate(
+                    dto.xrayJsonTemplateUuids,
+                );
+                if (invalidError) {
+                    return fail(invalidError);
+                }
+            }
+
             if (dto.xrayJsonTemplateUuid) {
                 const xrayJsonTemplate = await this.queryBus.execute(
                     new GetSubscriptionTemplateByUuidQuery(dto.xrayJsonTemplateUuid),
@@ -91,7 +120,13 @@ export class HostsService {
                 serverDescription = undefined;
             }
 
-            const { inbound: inboundObj, nodes, excludedInternalSquads, ...rest } = dto;
+            const {
+                inbound: inboundObj,
+                nodes,
+                excludedInternalSquads,
+                xrayJsonTemplateUuids,
+                ...rest
+            } = dto;
 
             const configProfile = await this.queryBus.execute(
                 new GetConfigProfileByUuidQuery(inboundObj.configProfileUuid),
@@ -143,6 +178,14 @@ export class HostsService {
                 });
             }
 
+            if (xrayJsonTemplateUuids !== undefined && xrayJsonTemplateUuids.length > 0) {
+                await this.hostsRepository.addXrayJsonTemplatesToHost(
+                    result.uuid,
+                    xrayJsonTemplateUuids,
+                );
+                result.xrayJsonTemplateUuids = xrayJsonTemplateUuids;
+            }
+
             return ok(result);
         } catch (error) {
             this.logger.error(error);
@@ -153,10 +196,23 @@ export class HostsService {
 
     public async updateHost(dto: UpdateHostRequestDto): Promise<TResult<HostsEntity>> {
         try {
-            const { inbound: inboundObj, nodes, excludedInternalSquads, ...rest } = dto;
+            const {
+                inbound: inboundObj,
+                nodes,
+                excludedInternalSquads,
+                xrayJsonTemplateUuids,
+                ...rest
+            } = dto;
 
             const host = await this.hostsRepository.findByUUID(dto.uuid);
             if (!host) return fail(ERRORS.HOST_NOT_FOUND);
+
+            if (xrayJsonTemplateUuids?.length) {
+                const invalidError = await this.findInvalidXrayJsonTemplate(xrayJsonTemplateUuids);
+                if (invalidError) {
+                    return fail(invalidError);
+                }
+            }
 
             if (dto.xrayJsonTemplateUuid) {
                 const xrayJsonTemplate = await this.queryBus.execute(
@@ -258,6 +314,14 @@ export class HostsService {
                 await this.hostsRepository.addExcludedInternalSquadsToHost(
                     host.uuid,
                     excludedInternalSquads,
+                );
+            }
+
+            if (xrayJsonTemplateUuids !== undefined) {
+                await this.hostsRepository.clearXrayJsonTemplatesFromHost(host.uuid);
+                await this.hostsRepository.addXrayJsonTemplatesToHost(
+                    host.uuid,
+                    xrayJsonTemplateUuids,
                 );
             }
 

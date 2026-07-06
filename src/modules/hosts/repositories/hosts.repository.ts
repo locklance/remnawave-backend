@@ -218,12 +218,34 @@ export class HostsRepository implements ICrud<HostsEntity> {
             .orderBy('hosts.viewPosition', 'asc')
             .execute();
 
+        const hostUuids = hosts.map((h) => h.uuid);
+        const templateLinks =
+            hostUuids.length > 0
+                ? await this.prisma.tx.hostsToXrayJsonTemplates.findMany({
+                      where: { hostUuid: { in: hostUuids } },
+                      orderBy: { position: 'asc' },
+                      include: { template: { select: { templateJson: true } } },
+                  })
+                : [];
+
+        const templatesByHost = new Map<string, object[]>();
+        for (const link of templateLinks) {
+            const json = link.template?.templateJson;
+            if (json === null || json === undefined) {
+                continue;
+            }
+            const list = templatesByHost.get(link.hostUuid) ?? [];
+            list.push(json as object);
+            templatesByHost.set(link.hostUuid, list);
+        }
+
         return hosts.map(
             (h) =>
                 new HostWithRawInbound({
                     ...h,
                     securityLayer: h.securityLayer as TSecurityLayers,
                     xHttpExtraParams: h.xhttpExtraParams,
+                    xrayJsonTemplates: templatesByHost.get(h.uuid) ?? [],
                 }),
         );
     }
@@ -291,6 +313,32 @@ export class HostsRepository implements ICrud<HostsEntity> {
 
     public async clearExcludedInternalSquadsFromHost(hostUuid: string): Promise<boolean> {
         const result = await this.prisma.tx.internalSquadHostExclusions.deleteMany({
+            where: { hostUuid },
+        });
+        return !!result;
+    }
+
+    public async addXrayJsonTemplatesToHost(
+        hostUuid: string,
+        templateUuids: string[],
+    ): Promise<boolean> {
+        if (templateUuids.length === 0) {
+            return true;
+        }
+
+        const result = await this.prisma.tx.hostsToXrayJsonTemplates.createMany({
+            data: templateUuids.map((templateUuid, position) => ({
+                hostUuid,
+                templateUuid,
+                position,
+            })),
+            skipDuplicates: true,
+        });
+        return !!result;
+    }
+
+    public async clearXrayJsonTemplatesFromHost(hostUuid: string): Promise<boolean> {
+        const result = await this.prisma.tx.hostsToXrayJsonTemplates.deleteMany({
             where: { hostUuid },
         });
         return !!result;

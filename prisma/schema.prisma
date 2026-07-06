@@ -296,6 +296,7 @@ model Hosts {
 
   nodes                  HostsToNodes[]
   excludedInternalSquads InternalSquadHostExclusions[]
+  xrayJsonTemplates      HostsToXrayJsonTemplates[]
 
   @@map("hosts")
 }
@@ -324,6 +325,7 @@ model SubscriptionTemplate {
 
   externalSquadsTemplates ExternalSquadsTemplates[]
   hosts                   Hosts[]
+  xrayJsonTemplateHosts   HostsToXrayJsonTemplates[]
 
   @@unique([templateType, name])
   @@map("subscription_templates")
@@ -525,6 +527,18 @@ model HostsToNodes {
 
   @@id([hostUuid, nodeUuid])
   @@map("hosts_to_nodes")
+}
+
+model HostsToXrayJsonTemplates {
+  hostUuid     String @map("host_uuid") @db.Uuid
+  templateUuid String @map("template_uuid") @db.Uuid
+  position     Int    @map("position")
+
+  host     Hosts                @relation(fields: [hostUuid], references: [uuid], onDelete: Cascade)
+  template SubscriptionTemplate @relation(fields: [templateUuid], references: [uuid], onDelete: Cascade)
+
+  @@id([hostUuid, templateUuid])
+  @@map("hosts_to_xray_json_templates")
 }
 
 model ConfigProfileSnippets {

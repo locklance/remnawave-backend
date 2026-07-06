@@ -86,6 +86,11 @@ export namespace CreateHostCommand {
         mihomoX25519: z.optional(z.boolean().default(false)),
         nodes: z.optional(z.array(z.string().uuid())),
         xrayJsonTemplateUuid: z.optional(z.string().uuid().nullable()),
+        xrayJsonTemplateUuids: z
+            .optional(z.array(z.string().uuid()))
+            .describe(
+                'Optional. Ordered list of XRAY_JSON template fragments merged into the host config.',
+            ),
         excludedInternalSquads: z
             .optional(z.array(z.string().uuid()))
             .describe('Optional. Internal squads from which the host will be excluded.'),

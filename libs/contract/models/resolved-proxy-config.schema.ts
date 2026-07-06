@@ -255,6 +255,7 @@ export const ResolvedProxyConfigSchema = z.object({
         mihomoX25519: z.boolean(),
         serverDescription: z.string().nullable(),
         xrayJsonTemplate: z.nullable(z.unknown()),
+        xrayJsonTemplates: z.array(z.unknown()).default([]),
     }),
 
     metadata: ProxyEntryMetadataSchema,

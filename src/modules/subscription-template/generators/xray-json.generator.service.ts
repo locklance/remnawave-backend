@@ -5,7 +5,7 @@ import type {
 
 import { Injectable, Logger } from '@nestjs/common';
 
-import { isNonEmptyObject } from '@common/utils';
+import { isNonEmptyObject, mergeXrayJsonFragments } from '@common/utils';
 
 import {
     IGenerateConfigParams,
@@ -199,10 +199,17 @@ export class XrayJsonGeneratorService {
                 if (host.metadata.isHidden) continue;
                 if (host.metadata.excludeFromSubscriptionTypes.includes('XRAY_JSON')) continue;
 
-                const baseTemplate = ignoreHostXrayJsonTemplate
+                const fragments = ignoreHostXrayJsonTemplate
+                    ? []
+                    : ((host.clientOverrides.xrayJsonTemplates as
+                          Array<Record<string, unknown>> | undefined) ?? []);
+
+                const baseTemplate: XrayJsonConfig = ignoreHostXrayJsonTemplate
                     ? templateContent
-                    : ((host.clientOverrides.xrayJsonTemplate as XrayJsonConfig) ??
-                      templateContent);
+                    : fragments.length > 0
+                      ? (mergeXrayJsonFragments(fragments) as unknown as XrayJsonConfig)
+                      : ((host.clientOverrides.xrayJsonTemplate as XrayJsonConfig) ??
+                        templateContent);
 
                 if (baseTemplate.remnawave) {
                     const injected = this.applyRemnawaveInjector(
@@ -220,7 +227,7 @@ export class XrayJsonGeneratorService {
 
                 configs.push({
                     ...baseTemplate,
-                    outbounds: [...outboundConfig.outbounds, ...baseTemplate.outbounds],
+                    outbounds: [...outboundConfig.outbounds, ...(baseTemplate.outbounds ?? [])],
                     remarks: outboundConfig.remarks,
                     meta: outboundConfig.meta,
                 });

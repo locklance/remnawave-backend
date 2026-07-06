@@ -5,3 +5,4 @@ export * from './get-redis-connection-options';
 export * from './mask-string';
 export * from './md5';
 export * from './superjson';
+export * from './xray-json/merge-fragments';

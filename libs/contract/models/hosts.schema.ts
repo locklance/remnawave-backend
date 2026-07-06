@@ -38,6 +38,7 @@ export const HostsSchema = z.object({
 
     nodes: z.array(z.string().uuid()),
     xrayJsonTemplateUuid: z.string().uuid().nullable(),
+    xrayJsonTemplateUuids: z.array(z.string().uuid()).default([]),
     excludedInternalSquads: z.array(z.string().uuid()),
     excludeFromSubscriptionTypes: z.array(z.nativeEnum(SUBSCRIPTION_TEMPLATE_TYPE)).optional(),
 });

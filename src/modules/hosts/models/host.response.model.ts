@@ -41,6 +41,7 @@ export class HostResponseModel {
     public nodes: string[];
 
     public xrayJsonTemplateUuid: string | null;
+    public xrayJsonTemplateUuids: string[];
 
     public excludedInternalSquads: string[];
     public excludeFromSubscriptionTypes: TSubscriptionTemplateType[];
@@ -86,6 +87,7 @@ export class HostResponseModel {
         );
 
         this.xrayJsonTemplateUuid = data.xrayJsonTemplateUuid;
+        this.xrayJsonTemplateUuids = data.xrayJsonTemplateUuids ?? [];
         this.excludeFromSubscriptionTypes = data.excludeFromSubscriptionTypes;
     }
 }
