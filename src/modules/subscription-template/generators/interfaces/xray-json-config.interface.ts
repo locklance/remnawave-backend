@@ -64,4 +64,5 @@ export interface IGenerateConfigParams {
     isExtendedClient: boolean;
     overrideTemplateName?: string;
     ignoreHostXrayJsonTemplate?: boolean;
+    telemetryId?: string;
 }
