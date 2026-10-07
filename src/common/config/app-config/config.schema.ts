@@ -69,6 +69,10 @@ export const configSchema = z
         METRICS_USER: z.string().min(1, { message: 'METRICS_USER cannot be empty' }),
         METRICS_PASS: z.string().min(1, { message: 'METRICS_PASS cannot be empty' }),
         SUB_PUBLIC_DOMAIN: z.string(),
+        TELEMETRY_ID_KEY: z
+            .string()
+            .regex(/^[0-9a-f]{32}$/, 'Must be 32 lowercase hex characters.')
+            .optional(),
         WEBHOOK_ENABLED: z
             .string()
             .default('false')

@@ -5,6 +5,7 @@ import type {
 
 import { Injectable, Logger } from '@nestjs/common';
 
+import { TELEMETRY_ID_PLACEHOLDER } from '@common/utils/templates/telemetry-id';
 import { isNonEmptyObject } from '@common/utils';
 
 import {
@@ -185,6 +186,7 @@ export class XrayJsonGeneratorService {
             isExtendedClient,
             overrideTemplateName,
             ignoreHostXrayJsonTemplate = false,
+            telemetryId = '',
         } = params;
 
         try {
@@ -226,7 +228,10 @@ export class XrayJsonGeneratorService {
                 });
             }
 
-            return JSON.stringify(configs, null, 0);
+            return JSON.stringify(configs, null, 0).replaceAll(
+                TELEMETRY_ID_PLACEHOLDER,
+                telemetryId,
+            );
         } catch (error) {
             this.logger.error(`Error generating xray-json config: ${error}`);
             return '';

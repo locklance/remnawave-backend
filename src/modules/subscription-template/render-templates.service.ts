@@ -1,4 +1,7 @@
+import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
+
+import { encryptTelemetryId } from '@common/utils/templates/telemetry-id';
 
 import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
 import { HostWithRawInbound } from '@modules/hosts/entities/host-with-inbound-tag.entity';
@@ -24,6 +27,7 @@ export class RenderTemplatesService {
         private readonly xrayGeneratorService: XrayGeneratorService,
         private readonly singBoxGeneratorService: SingBoxGeneratorService,
         private readonly xrayJsonGeneratorService: XrayJsonGeneratorService,
+        private readonly configService: ConfigService,
     ) {}
 
     public async generateSubscription(params: IGenerateSubscription): Promise<{
@@ -98,6 +102,7 @@ export class RenderTemplatesService {
                         isExtendedClient: srrContext.isExtendedClient,
                         overrideTemplateName: srrContext.overrideTemplateName,
                         ignoreHostXrayJsonTemplate: srrContext.ignoreHostXrayJsonTemplate,
+                        telemetryId: this.getTelemetryId(user),
                     }),
                     contentType: SUBSCRIPTION_CONFIG_TYPES['XRAY_JSON'].CONTENT_TYPE,
                 };
@@ -121,5 +126,11 @@ export class RenderTemplatesService {
             user,
             hostsOverrides,
         });
+    }
+
+    private getTelemetryId(user: UserEntity): string {
+        const key = this.configService.get<string>('TELEMETRY_ID_KEY');
+
+        return key ? encryptTelemetryId(user.tId, key) : '';
     }
 }
